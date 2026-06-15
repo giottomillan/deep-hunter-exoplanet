@@ -40,7 +40,7 @@ print(f"Usando dispositivo: {DEVICE}")
 transform = transforms.Compose(
     [
         #redimensionamos porque ResNet18 porque fue diseñado para procesar imágenes de 224x224 píxeles
-        transforms.Resize(224, 224),
+        transforms.Resize((224, 224)),
         #aplicamos rotación para que la red no se vuelva perezosa
         transforms.RandomRotation(degrees=5),
         #convertimos los píxles de las imágenes en matrices para los tensores de pytorch
@@ -88,7 +88,7 @@ model = model.to(DEVICE)
 criterion = nn.CrossEntropyLoss()
 
 #definimos el optimizador ADAM
-optimiizer = torch.optim.Adam(model.parameters(), lr=LR)
+optimizer = torch.optim.Adam(model.parameters(), lr=LR)
 
 #-----------------
 #ENTRENAMIENTO
@@ -106,7 +106,7 @@ for epoch in range(EPOCHS):
         labels = labels.to(DEVICE)
         
         #reseteamos los gradientes porque pytorch los acumula por defecto
-        optimiizer.zero_grad()
+        optimizer.zero_grad()
         
         #pasamos las imágenes por la red
         outputs = model(images)
@@ -118,7 +118,7 @@ for epoch in range(EPOCHS):
         loss.backward()
         
         #ajustamos los pesos con el optimizador
-        optimiizer.step()
+        optimizer.step()
         
         total_loss += loss.item()
         
@@ -138,7 +138,7 @@ targets = []
 
 with torch.no_grad():
     
-    for images, labels, in val_loader:
+    for images, labels in val_loader:
         
         images = images.to(DEVICE)
         
@@ -177,7 +177,7 @@ plt.xlabel("Predicciones")
 plt.ylabel("Real")
 plt.tight_layout()
 #salvamos la figura
-plt.savefig(REPORT_DIR/"confusion_matrix.pt")
+plt.savefig(REPORT_DIR/"confusion_matrix.png")
 print("Figura de las predicciones salvada")
 
 #salvamos el modelo
