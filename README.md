@@ -102,7 +102,13 @@ Esta configuración evita que el modelo aprenda una regla trivial como *"caída 
 
 # 🧪 Experimentos
 
-Se crearon dos conjuntos de datos para evaluar el modelo de forma progresiva.
+Se crearon tres conjuntos de datos de dificultad incremental para evaluar el comportamiento del modelo y estudiar sus limitaciones.
+
+La experimentación siguió un enfoque iterativo:
+
+1. Validar si la representación visual contiene información suficiente.
+2. Incrementar la dificultad con falsos positivos más similares.
+3. Reducir la diferencia entre datos sintéticos y observaciones reales (*domain shift*).
 
 ## Experimento 1 — Dataset Base (Baseline)
 
@@ -155,6 +161,56 @@ El modelo prioriza el **recall (sensibilidad)**, lo que significa que se pierden
 
 ---
 
+## Experimento 3 — Adaptación Visual Estilo Kepler (*Kepler Style Dataset*)
+
+Tras probar el modelo anterior con una curva real del telescopio Kepler, se detectó un problema de **domain shift**: las imágenes sintéticas utilizadas durante el entrenamiento eran visualmente diferentes a las observaciones astronómicas reales.
+
+Por este motivo, se creó una tercera versión del dataset simulando características propias de las curvas Kepler:
+
+**Características añadidas:**
+
+* Mayor resolución temporal (más puntos por curva).
+* Ruido instrumental más intenso.
+* Variabilidad estelar de baja frecuencia.
+* Artefactos verticales similares a discontinuidades instrumentales.
+* Estilo visual más parecido a publicaciones astronómicas reales:
+  * curva negra,
+  * mayor densidad de puntos,
+  * patrones menos suavizados.
+
+El objetivo no era simplemente mejorar la métrica, sino comprobar si un dataset sintético más realista permitía mejorar la generalización.
+
+**Resultados:**
+
+| Métrica | Valor |
+| --- | --- |
+| Accuracy | 0.980 |
+| Precision | 0.956 |
+| Recall | 1.000 |
+| F1-score | 0.978 |
+
+El resultado más relevante es el **Recall = 1.0**.
+
+Esto indica que, dentro del conjunto de validación, el modelo fue capaz de recuperar todos los candidatos planetarios.
+
+En un sistema de búsqueda astronómica preliminar este comportamiento es especialmente interesante, ya que es preferible generar algunos falsos positivos adicionales antes que descartar posibles descubrimientos.
+
+---
+
+# 📈 Comparación Global de Experimentos
+
+| Experimento | Objetivo | Accuracy | Precision | Recall | F1 |
+| --- | --- | --- | --- | --- | --- |
+| Baseline | Validar pipeline CV | 1.000 | 1.000 | 1.000 | 1.000 |
+| Hard Dataset | Evaluar robustez | 0.975 | 0.961 | 0.990 | 0.975 |
+| Kepler Style | Reducir domain shift | 0.980 | 0.956 | 1.000 | 0.978 |
+
+La evolución experimental muestra que el primer resultado perfecto no implicaba necesariamente un modelo más robusto. 
+
+La introducción progresiva de ruido, falsos positivos difíciles y artefactos realistas permitió evaluar mejor las limitaciones del sistema.
+
+---
+
 # 🧠 Modelo
 
 El clasificador hace uso de aprendizaje por transferencia (*transfer learning*).
@@ -200,21 +256,55 @@ Se presta especial atención al *recall* debido al alto coste crítico que supon
 
 # 🌍 Experimento con Datos Reales
 
-Se sometió al modelo a una prueba utilizando una imagen de una curva de luz real extraída del telescopio espacial Kepler (correspondiente al exoplaneta confirmado **Kepler-8b**).
+Finalmente, se evaluó el sistema utilizando una imagen real de una curva de luz procedente de Kepler correspondiente al exoplaneta confirmado **Kepler-8b**.
 
-**Predicción obtenida:**
+El objetivo era comprobar si los patrones aprendidos con datos sintéticos podían transferirse parcialmente a datos astronómicos reales.
 
-* **Planet (Planeta):** 57%
-* **False Positive (Falso Positivo):** 43%
+## Modelo entrenado con Hard Dataset
 
-El modelo identificó correctamente al candidato como un patrón planetario, aunque el nivel de confianza disminuyó. Esto reveló una limitación técnica clave:
+Resultado inicial:
 
-## Domain Shift (Desplazamiento de Dominio)
+|Clase|Probabilidad|
+|-|-|
+|Planet|57%|
+|False Positive|43%|
 
-* **Imágenes de entrenamiento:** Sintéticas, fondo limpio, ruido controlado, formato estandarizado y un solo tránsito centrado.
-* **Imágenes astronómicas reales:** Mayor nivel de ruido base, estilos de visualización diferentes, artefactos del instrumento y líneas de cuadrículas/ejes.
+Aunque el modelo clasificó correctamente la curva como candidata planetaria, la baja confianza reveló un problema de **domain shift**.
 
-Las futuras versiones reducirán esta brecha generando datos sintéticos más realistas e incorporando observaciones reales de las misiones Kepler y TESS dentro del set de entrenamiento.
+## Modelo entrenado con Kepler Style Dataset
+
+Tras adaptar la generación sintética para parecerse más al dominio real:
+
+|Clase|Probabilidad|
+|-|-|
+|Planet|100%|
+|False Positive|0%|
+
+La mejora de confianza sugiere que parte de la incertidumbre inicial estaba causada por diferencias visuales entre los datos de entrenamiento y las curvas reales.
+
+Este resultado no implica la confirmación automática de exoplanetas, pero demuestra la importancia de diseñar datasets representativos del dominio objetivo.
+
+---
+
+## Domain Shift detectado
+
+Diferencias principales:
+
+**Dataset inicial**
+
+* Curvas limpias.
+* Fondo homogéneo.
+* Ruido controlado.
+* Representación simplificada.
+
+**Datos reales Kepler**
+
+* Mayor ruido instrumental.
+* Variabilidad estelar.
+* Artefactos visuales.
+* Mayor complejidad.
+
+La solución propuesta fue incorporar estas características al proceso de generación sintética.
 
 ---
 
@@ -236,34 +326,40 @@ Se desarrolló una aplicación web interactiva utilizando **Gradio**. El usuario
 # 🏗️ Estructura del Proyecto
 
 ```text
+
 deep-hunter-exoplanet/
 ├── app/
-│   └── app.py
-│
+│   └── app.py                      # Aplicación web interactiva (Gradio)
 ├── data/
-│   ├── images/
-│   ├── images_hard/
-│   └── raw/
-│
+│   ├── images/                     # Dataset Experimento 1 (Baseline)
+│   ├── images_hard/                # Dataset Experimento 2 (Hard)
+│   ├── images_kepler_style/         # Dataset Experimento 3 (Estilo Kepler Real)
+│   └── test_real_kepler/           # Muestras reales de Kepler para validación
 ├── models/
-│   └── resnet18_exoplanetas.pt
-│
-├── reports/
-│   └── figures/
-│       └── confusion_matrix.png
-│
-├── src/
-│   ├── data/
+│   ├── resnet18_exoplanetas.pt     # Peso del modelo Baseline
+│   ├── resnet18_exoplanetas_images_hard.pt
+│   └── resnet18_exoplanetas_images_kepler_style.pt
+├── notebooks/                      # Jupyter Notebooks de desarrollo y análisis
+│   ├── 01_dataset.ipynb
+│   ├── 02_training.ipynb
+│   └── 03_results.ipynb
+├── reports/figures/                # Matrices de confusión de los 3 experimentos
+│   ├── confusion_matrix.png
+│   ├── confusion_matrix_images_hard.png
+│   └── confusion_matrix_images_kepler_style.png
+├── src/                            # Código fuente del proyecto
+│   ├── data/                       # Scripts de generación de datos sintéticos
 │   │   ├── generate_images.py
-│   │   └── generate_images_hard.py
-│   │
-│   └── models/
+│   │   ├── generate_images_hard.py
+│   │   └── generate_images_kepler_style.py
+│   └── models/                     # Scripts de entrenamiento e inferencia
+│       ├── predict.py
 │       ├── train.py
-│       └── predict.py
-│
+│       ├── train_hard.py
+│       └── train_kepler_style.py
+├── pyproject.toml                  # Configuración del entorno y dependencias
 └── README.md
 
-```
 
 ---
 

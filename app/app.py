@@ -9,7 +9,7 @@ from PIL import Image
 APP_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = APP_DIR.parent
 
-MODEL_PATH = PROJECT_ROOT / "models" / "resnet18_exoplanetas_images_hard.pt"
+MODEL_PATH = PROJECT_ROOT / "models" / "resnet18_exoplanetas_images_kepler_style.pt"
 
 CLASS_NAMES = ["false_positive", "planet"]
 
