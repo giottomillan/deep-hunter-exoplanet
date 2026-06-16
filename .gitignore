@@ -1,0 +1,29 @@
+# --- SEGURIDAD ---
+# Bloquear el archivo local donde guardaremos los tokens y contraseñas
+.env
+
+# --- ARTIFACTS Y ENTREGAS ---
+# Bloquear el archivo comprimido que generas para el campus virtual
+*.zip
+
+
+# --- PYTHON & VIRTUAL ENVS ---
+# Evitar subir cachés de ejecución y entornos virtuales locales
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+.uv/
+
+# --- BASURA DE SISTEMA (Windows / Mac) ---
+# Limpiar los metadatos fantasma que crea Windows en WSL
+*:Zone.Identifier
+*.Identifier
+.DS_Store
+Thumbs.db
+
+# --- CONFIGURACIÓN DE REPOSITORIOS ANIDADOS ---
+# Esto permite que Git suba el código de hf_space/ pero ignore su historial interno de Hugging Face
+hf_space/**/.git

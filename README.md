@@ -1,5 +1,8 @@
 # 🪐 Deep Hunter Exoplanet
 
+🚀 Demo:
+https://huggingface.co/spaces/Giotto/deep-hunter-exoplanet
+
 Deep Hunter Exoplanet es un proyecto de Visión por Computador enfocado en la detección de patrones similares a tránsitos de exoplanetas a partir de curvas de luz astronómicas.
 
 El proyecto explora un enfoque alternativo:
@@ -402,3 +405,14 @@ Diseño de una arquitectura futura inspirada en el modelo VARnet:
 * Paz, M. (2024). VARnet: A Submillisecond Fourier and Wavelet-based Model to Extract Variable Candidates from the NEOWISE Single-exposure Database.
 
 ```
+
+# ⚠️ Limitaciones
+
+Aunque el modelo consigue buenos resultados, existen varias limitaciones:
+
+- El entrenamiento se realiza sobre datos sintéticos.
+- La predicción depende de la representación visual utilizada.
+- El modelo aprende patrones morfológicos, pero no realiza una validación astrofísica completa.
+- Confirmar un exoplaneta requiere análisis adicionales como periodicidad orbital, profundidad del tránsito y validación estadística.
+
+Este sistema debe entenderse como una herramienta preliminar de filtrado.
