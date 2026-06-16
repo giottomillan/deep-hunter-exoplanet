@@ -360,6 +360,7 @@ deep-hunter-exoplanet/
 ├── pyproject.toml                  # Configuración del entorno y dependencias
 └── README.md
 
+---
 
 ---
 
